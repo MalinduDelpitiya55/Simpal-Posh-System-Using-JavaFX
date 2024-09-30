@@ -2,6 +2,7 @@ package controller;
 
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXTextField;
+import db.DBConnection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -120,6 +121,7 @@ public class CustomerFormController implements Initializable {
             if (pstm.executeUpdate()>0){
                 new Alert(Alert.AlertType.INFORMATION,"Customer Added Successfully").show();
                 loadTable();
+                setNullValueToTextFields();
             }
 
         } catch (SQLException e) {
@@ -127,8 +129,6 @@ public class CustomerFormController implements Initializable {
         }
 
     }
-
-
 
     @FXML
     void btnViewCustomerOnAction(ActionEvent event) {
@@ -150,10 +150,8 @@ public class CustomerFormController implements Initializable {
 
 
         try {
-            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/ThogaKade", "root", "root");
-            System.out.println(connection);
             String sql= "Select * from customer";
-            ResultSet resultSet = connection.createStatement().executeQuery(sql);
+            ResultSet resultSet = DBConnection.getInstance().getConnection().createStatement().executeQuery(sql);
             while (resultSet.next()){
                 Customer customer =new Customer(
                         resultSet.getString("CustID"),
@@ -204,15 +202,94 @@ public class CustomerFormController implements Initializable {
         txtPostalCode.setText(newValue.getPostalCode());
         combTitle.setValue(newValue.getTitle());
         DateBirthDay.setValue(newValue.getDob());
-
+    }
+    private void setNullValueToTextFields(){
+        System.out.println("Set NUll");
+        txtID.setText("");
+        txtName.setText("");
+        txtAddress.setText("");
+        txtProvince.setText("");
+        txtCity.setText("");
+        txtSalary.setText("");
+        txtPostalCode.setText("");
+        combTitle.setValue("");
     }
 
     public void btnUpdateCustomerOnAction(ActionEvent actionEvent) {
+        String SQL = "UPDATE customer SET CustTitle = ?, CustName = ?, DOB = ?, salary = ?, CustAddress = ?, City = ?, Province = ?, PostalCode = ? WHERE CustID = ?";
+        try {
+            Customer customer =new Customer(txtID.getText(),combTitle.getValue(),txtName.getText(),DateBirthDay.getValue(),Double.parseDouble(txtSalary.getText()),txtAddress.getText(),txtCity.getText(),txtProvince.getText(),txtPostalCode.getText());
+            PreparedStatement pstm = DBConnection.getInstance().getConnection().prepareStatement(SQL);
+            pstm.setObject(1,customer.getTitle());
+            pstm.setObject(2,customer.getName());
+            pstm.setObject(3,customer.getDob());
+            pstm.setObject(4,customer.getSalary());
+            pstm.setObject(5,customer.getAddress());
+            pstm.setObject(6,customer.getCity());
+            pstm.setObject(7,customer.getProvince());
+            pstm.setObject(8,customer.getPostalCode());
+            pstm.setObject(9,customer.getId());
+            System.out.println(pstm);
+            boolean isUpdated = pstm.executeUpdate() > 0;
+
+            if (isUpdated ){
+                new Alert(Alert.AlertType.INFORMATION,"Customer Updated Successful").show();
+                loadTable();
+                setNullValueToTextFields();
+            }else{
+                new Alert(Alert.AlertType.ERROR,txtID.getText()+" Customer Not Found").show();
+                setNullValueToTextFields();
+            }
+        } catch (SQLException e) {
+            new Alert(Alert.AlertType.ERROR,txtID.getText()+" Customer Updated Failed").show();
+        }
     }
 
     public void btnDeleteCustomerOnAction(ActionEvent actionEvent) {
+        String SQL = "DELETE FROM customer WHERE CustID = '"+txtID.getText()+"'";
+        try {
+        boolean isDeleted = DBConnection.getInstance().getConnection().createStatement().executeUpdate(SQL)>0;
+        if (isDeleted ){
+            new Alert(Alert.AlertType.INFORMATION,"Customer Deleted Successful").show();
+            loadTable();
+            setNullValueToTextFields();
+        }else {
+                new Alert(Alert.AlertType.ERROR,"Customer Not Found").show();
+                setNullValueToTextFields();
+         }
+        } catch (SQLException e) {
+            new Alert(Alert.AlertType.ERROR,txtID.getText()+" Customer Delete Error").show();
+        }
+
     }
 
     public void btnSearchCustomerOnAction(ActionEvent actionEvent) {
+        String SQL = "SELECT * FROM customer WHERE CustID=?";
+        try {
+            PreparedStatement pstm = DBConnection.getInstance().getConnection().prepareStatement(SQL);
+            pstm.setObject(1,txtID.getText());
+            ResultSet resultSet = pstm.executeQuery();
+            if (resultSet!=null){
+                resultSet.next();
+                setValueToTextFields(new Customer(
+                        resultSet.getString(1),
+                        resultSet.getString(2),
+                        resultSet.getString(3),
+                        resultSet.getDate(4).toLocalDate(),
+                        resultSet.getDouble(5),
+                        resultSet.getString(6),
+                        resultSet.getString(7),
+                        resultSet.getString(8),
+                        resultSet.getString(9)
+                ));
+            }else{
+                new Alert(Alert.AlertType.ERROR,txtID.getText()+" Customer Not Found").show();
+                setNullValueToTextFields();
+
+            }
+
+        }catch (SQLException e){
+            new Alert(Alert.AlertType.ERROR,txtID.getText()+" Customer Search Error").show();
+        }
     }
 }

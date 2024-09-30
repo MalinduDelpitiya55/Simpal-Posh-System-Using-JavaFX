@@ -47,7 +47,7 @@
          </columns>
       </TableView>
       <JFXButton fx:id="btnReload" layoutX="370.0" layoutY="502.0" onAction="#ReloadOnAction" style="-fx-background-color: #00a8ff;" text="Reload" />
-      <Button layoutX="668.0" layoutY="501.0" mnemonicParsing="false" onAction="#btnViewCustomerOnAction" prefHeight="26.0" prefWidth="114.0" style="-fx-background-color: #e1b12c;" text="View Customers" />
+      <Button layoutX="668.0" layoutY="501.0" mnemonicParsing="false" onAction="#btnViewItemOnAction" prefHeight="26.0" prefWidth="114.0" style="-fx-background-color: #e1b12c;" text="View Item" />
       <JFXTextField fx:id="txtPostalCode" layoutX="418.0" layoutY="187.0" promptText="Postal Code" />
       <JFXTextField fx:id="txtProvince" layoutX="32.0" layoutY="245.0" promptText="Province" />
       <JFXTextField fx:id="txtCity" layoutX="222.0" layoutY="245.0" promptText="City" />
