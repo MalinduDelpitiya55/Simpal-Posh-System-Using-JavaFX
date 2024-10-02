@@ -1,4 +1,4 @@
-package controller;
+package controller.customer;
 
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXTextField;
@@ -99,7 +99,7 @@ public class CustomerFormController implements Initializable {
 
 
 
-
+    CustomerController customerController = new CustomerController();
 
     @FXML
     void ReloadOnAction(ActionEvent event)  {
@@ -125,10 +125,6 @@ public class CustomerFormController implements Initializable {
 
     }
 
-    @FXML
-    void btnViewCustomerOnAction(ActionEvent event) {
-
-    }
 
     private void loadTable(){
         ObservableList<Customer> customerObservableList = FXCollections.observableArrayList();
@@ -211,29 +207,20 @@ public class CustomerFormController implements Initializable {
     }
 
     public void btnUpdateCustomerOnAction(ActionEvent actionEvent) {
-        String SQL = "UPDATE customer SET CustTitle = ?, CustName = ?, DOB = ?, salary = ?, CustAddress = ?, City = ?, Province = ?, PostalCode = ? WHERE CustID = ?";
-        try {
-            Customer customer =new Customer(txtID.getText(),combTitle.getValue(),txtName.getText(),DateBirthDay.getValue(),Double.parseDouble(txtSalary.getText()),txtAddress.getText(),txtCity.getText(),txtProvince.getText(),txtPostalCode.getText());
-
-            boolean isUpdated = CrudUtils.execute(SQL,customer.getTitle(),customer.getName(),customer.getDob(),customer.getSalary(),customer.getAddress(),customer.getCity(),customer.getProvince(),customer.getPostalCode(),customer.getId());;
-
-            if (isUpdated ){
-                new Alert(Alert.AlertType.INFORMATION,"Customer Updated Successful").show();
-                loadTable();
-                setNullValueToTextFields();
-            }else{
-                new Alert(Alert.AlertType.ERROR,txtID.getText()+" Customer Not Found").show();
-                setNullValueToTextFields();
-            }
-        } catch (SQLException e) {
-            new Alert(Alert.AlertType.ERROR,txtID.getText()+" Customer Updated Failed").show();
+        Customer customer =new Customer(txtID.getText(),combTitle.getValue(),txtName.getText(),DateBirthDay.getValue(),Double.parseDouble(txtSalary.getText()),txtAddress.getText(),txtCity.getText(),txtProvince.getText(),txtPostalCode.getText());
+        boolean isUpdate = customerController.updateCustomer(customer);
+        if (isUpdate){
+            new  Alert(Alert.AlertType.INFORMATION,"Customer Updated !").show();
+            loadTable();
+        }
+        else {
+            new Alert(Alert.AlertType.ERROR,"Customer Not Updated !").show();
         }
     }
 
     public void btnDeleteCustomerOnAction(ActionEvent actionEvent) {
-        String SQL = "DELETE FROM customer WHERE CustID = ?";
-        try {
-        boolean isDeleted = CrudUtils.execute(SQL,txtID.getText());
+
+        boolean isDeleted = customerController.deleteCustomer(txtID.getText());
         if (isDeleted ){
             new Alert(Alert.AlertType.INFORMATION,"Customer Deleted Successful").show();
             loadTable();
@@ -242,50 +229,37 @@ public class CustomerFormController implements Initializable {
                 new Alert(Alert.AlertType.ERROR,"Customer Not Found").show();
                 setNullValueToTextFields();
          }
-        } catch (SQLException e) {
-            new Alert(Alert.AlertType.ERROR,txtID.getText()+" Customer Delete Error").show();
-        }
-
     }
 
     public void btnSearchCustomerOnAction(ActionEvent actionEvent) {
-        String SQL = "SELECT * FROM customer WHERE CustID=?";
-        try {
 
-            ResultSet resultSet = CrudUtils.execute(SQL,txtID.getText());
-            if (resultSet!=null){
-                resultSet.next();
+    Customer customer = customerController.searchCustomer(txtID.getText());
+            if (customer!=null){
                 setValueToTextFields(new Customer(
-                        resultSet.getString(1),
-                        resultSet.getString(2),
-                        resultSet.getString(3),
-                        resultSet.getDate(4).toLocalDate(),
-                        resultSet.getDouble(5),
-                        resultSet.getString(6),
-                        resultSet.getString(7),
-                        resultSet.getString(8),
-                        resultSet.getString(9)
+                        customer.getId(),
+                        customer.getTitle(),
+                        customer.getName(),
+                        customer.getDob(),
+                        customer.getSalary(),
+                        customer.getAddress(),
+                        customer.getCity(),
+                        customer.getProvince(),
+                        customer.getPostalCode()
                 ));
             }else{
                 new Alert(Alert.AlertType.ERROR,txtID.getText()+" Customer Not Found").show();
                 setNullValueToTextFields();
 
             }
-
-        }catch (SQLException e){
-            new Alert(Alert.AlertType.ERROR,txtID.getText()+" Customer Search Error").show();
-        }
     }
 
     public void btnViewItemOnAction(ActionEvent actionEvent) {
+        Stage stage = new Stage();
         try {
-            Parent root = FXMLLoader.load(getClass().getResource("../../resources/view/ItemForm.fxml")); // Specify your FXML file
-            Scene scene = new Scene(root);
-            Stage stage = new Stage();
-            stage.setScene(scene);
+            stage.setScene(new Scene(FXMLLoader.load(getClass().getResource("/view/Dashbord.fxml"))));
             stage.show();
         } catch (IOException e) {
-            e.printStackTrace(); // Handle the exception if the FXML file is not found or an error occurs
+            throw new RuntimeException(e);
         }
     }
 }
